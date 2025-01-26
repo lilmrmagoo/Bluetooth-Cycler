@@ -1,0 +1,38 @@
+status - waiting, pairing, connected, paused, playing
+
+Main chip i2c connection with the other 2
+
+use i2c to communicate slaves will store status in memeory and send when requested by master
+
+master will tell slaves when to activate enabling thier bt connections, 
+after a minute of no connection or when all connections are establised the master will start playing and cycling with the current number of devices, 2-3 atm
+
+buttons connected to master for pausing and cycling manually.
+
+
+for testing, use nand and nor chips for multiplexer, and use internal dac setup for audio output.
+
+-setup
+turn on,
+first phone connects,
+sends signal to first slave to activate,
+waits and checks every x interval if first slave has gained a connection
+if it has gained a connection
+	send signal to second slave to activate
+	waits and checks every x interval for y time if second slave has gained a connection
+		if it has start playing master
+		pause slaves
+	else
+		limit device num to 2
+
+-loop
+get state of all devices
+
+check track change flag
+
+
+-getting state of devices
+	i2c request state from slaves based on device num
+	get state of master
+	return overall state, (nothing, refresh, cycle)
+	
