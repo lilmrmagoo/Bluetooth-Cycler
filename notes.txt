@@ -28,11 +28,11 @@ if it has gained a connection
 -loop
 get state of all devices
 
-check track change flag
+
 
 
 -getting state of devices
 	i2c request state from slaves based on device num
-	get state of master
+	get state of master (check track change flag)
 	return overall state, (nothing, refresh, cycle)
 	

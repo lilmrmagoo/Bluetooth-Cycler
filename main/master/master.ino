@@ -1,5 +1,6 @@
 #include "AudioTools.h"
 #include "BluetoothA2DPSink.h"
+#include <Wire.h>
 
 AnalogAudioStream out;
 BluetoothA2DPSink a2dp_sink(out);
@@ -51,6 +52,7 @@ void avrc_rn_track_change_callback(uint8_t *id) {
   Serial.printf("\tFlag value: %d\n",track_change_flag);
 }
 void setup() {
+  Wire.Begin();
   Serial.begin(115200);
   a2dp_sink.set_avrc_metadata_callback(avrc_metadata_callback);
   a2dp_sink.set_avrc_rn_track_change_callback(avrc_rn_track_change_callback)
