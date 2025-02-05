@@ -1,2 +1,6 @@
 make enum for to repersent state of each chip, see if inherinting esp_avrc_playback_stat_t is possible.
-needs at least waiting (slave only, needs activation from master), pairing (bluetooth sink created awaiting connection), connected, paused, playing
+needs at least waiting (slave only, needs activation from master),
+pairing (bluetooth sink created awaiting connection),
+connected,
+paused,
+playing

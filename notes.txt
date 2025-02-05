@@ -35,3 +35,14 @@ get state of all devices
 	i2c request state from slaves based on device num
 	get state of master (check track change flag)
 	return overall state, (nothing, refresh, cycle)
+
+
+
+-slave setup
+turn on,
+set state to waiting,
+wait for i2c request
+change to pairing create bt connection
+once connected set state to connected
+
+-slave 
