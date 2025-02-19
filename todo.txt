@@ -4,3 +4,6 @@ pairing (bluetooth sink created awaiting connection),
 connected,
 paused,
 playing
+
+make function to switch multiplexers that gets called on toggle? maybe cycle
+finish slave loop

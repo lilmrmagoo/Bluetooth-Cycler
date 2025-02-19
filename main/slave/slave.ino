@@ -4,8 +4,8 @@
 
 enum connection_state {WAITING = 0x01 ,PAIRING,CONNECTED};
 
-AnalogAudioStream out;
-BluetoothA2DPSink a2dp_sink(out);
+I2SStream i2s;
+BluetoothA2DPSink a2dp_sink(i2s);
 uint8_t track_change_flag = 0;
 bool cycleFlag = false;
 connection_state connectionState = PAIRING;
@@ -56,6 +56,11 @@ void setup() {
   // put your setup code here, to run once:
   Wire.Begin();
   Serial.begin(115200);
+  auto cfg = i2s.defaultConfig();
+  cfg.pin_bck = 14;
+  cfg.pin_ws = 12;
+  cfg.pin_data = 13;
+  i2s.begin(cfg);
   a2dp_sink.set_avrc_metadata_callback(avrc_metadata_callback);
   a2dp_sink.set_avrc_rn_track_change_callback(avrc_rn_track_change_callback);
   a2dp_sink.set_avrc_rn_playstatus_callback(avrc_rn_playstatus_callback);

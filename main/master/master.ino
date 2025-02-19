@@ -2,10 +2,13 @@
 #include "BluetoothA2DPSink.h"
 #include <Wire.h>
 
-I2SStream out;
-BluetoothA2DPSink a2dp_sink(out);
+I2SStream i2s;
+BluetoothA2DPSink a2dp_sink(i2s);
 
 enum connection_state {WAITING = 0x01 ,PAIRING,CONNECTED};
+
+int selectorPinA = 26;
+int selectorPinB = 25;
 
 int CurrentCycle = 0;
 int NextCycle = 1;
@@ -62,46 +65,7 @@ void avrc_rn_track_change_callback(uint8_t *id) {
   Serial.printf("\tFlag value: %d\n",track_change_flag);
   cycleFlag = true;
 }
-void setup() {
-  Wire.Begin();
-  Serial.begin(115200);
-  a2dp_sink.set_avrc_metadata_callback(avrc_metadata_callback);
-  a2dp_sink.set_avrc_rn_track_change_callback(avrc_rn_track_change_callback);
-  a2dp_sink.set_avrc_rn_playstatus_callback(avrc_rn_playstatus_callback);
-  a2dp_sink.start("BTCycler1");
-  while(!a2dp_sink.is_connected()) {delay(1000);}
-  connectionState = CONNECTED;
-  Wire.beginTransmission(1);
-  Wire.write(0x00);
-  Wire.endTransmission();
-  changeRequestReg(1,1,true);
-  for(int i =0; i<connectTimeout;i++){
-    byte connectState = Wire.requestfrom(1,1);
-    if(connectState == connection_state::CONNECTED){
-      Wire.endTrasmission();
-      connectionStates[1] = connection_state::CONNECTED;
-      break;
-    }
-    delay(1000);
-  }
-  if(connectionStates[1] = connection_state::CONNECTED){
-    Wire.beginTransmission(2);
-    Wire.write(0x01);
-    Wire.endTransmission();
-    changeRequestReg(2,1,true);
-    for(int i =0; i<connectTimeout;i++){
-      byte connectState = Wire.requestfrom(1,1);
-      if(connectState == connection_state::CONNECTED){
-        Wire.endTrasmission();
-        connectionStates[2] = connection_state::CONNECTED;
-        triMode = true;
-        break;
-      }
-      delay(1000);
-    }
-  }
 
-}
 
 void toggle(int cycleid){
   if(cycleid == 0){
@@ -191,6 +155,53 @@ int readState() {
   	return 3;
   }
   else{return 1;}
+}
+void setup() {
+  pinMode(selectorPinA,OUTPUT);
+  pinMode(selectorPinB,OUTPUT);
+  Wire.Begin();
+  Serial.begin(115200);
+  auto cfg = i2s.defaultConfig();
+  cfg.pin_bck = 14;
+  cfg.pin_ws = 12;
+  cfg.pin_data = 13;
+  i2s.begin(cfg);
+  a2dp_sink.set_avrc_metadata_callback(avrc_metadata_callback);
+  a2dp_sink.set_avrc_rn_track_change_callback(avrc_rn_track_change_callback);
+  a2dp_sink.set_avrc_rn_playstatus_callback(avrc_rn_playstatus_callback);
+  a2dp_sink.start("BTCycler1");
+  while(!a2dp_sink.is_connected()) {delay(1000);}
+  connectionState = CONNECTED;
+  Wire.beginTransmission(1);
+  Wire.write(0x00);
+  Wire.endTransmission();
+  changeRequestReg(1,1,true);
+  for(int i =0; i<connectTimeout;i++){
+    byte connectState = Wire.requestfrom(1,1);
+    if(connectState == connection_state::CONNECTED){
+      Wire.endTrasmission();
+      connectionStates[1] = connection_state::CONNECTED;
+      break;
+    }
+    delay(1000);
+  }
+  if(connectionStates[1] = connection_state::CONNECTED){
+    Wire.beginTransmission(2);
+    Wire.write(0x01);
+    Wire.endTransmission();
+    changeRequestReg(2,1,true);
+    for(int i =0; i<connectTimeout;i++){
+      byte connectState = Wire.requestfrom(1,1);
+      if(connectState == connection_state::CONNECTED){
+        Wire.endTrasmission();
+        connectionStates[2] = connection_state::CONNECTED;
+        triMode = true;
+        break;
+      }
+      delay(1000);
+    }
+  }
+
 }
 void loop() {
   int path = readState();
