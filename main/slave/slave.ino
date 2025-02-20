@@ -9,6 +9,8 @@ BluetoothA2DPSink a2dp_sink(i2s);
 uint8_t track_change_flag = 0;
 bool cycleFlag = false;
 connection_state connectionState = PAIRING;
+byte selectedReg = 0x00;
+bool toggleFlag = false;
 esp_avrc_playback_stat_t lastPlayState = esp_avrc_playback_stat_t::ESP_AVRC_PLAYBACK_PLAYING;
 esp_avrc_playback_stat_t playbackState = esp_avrc_playback_stat_t::ESP_AVRC_PLAYBACK_PLAYING;
 
@@ -50,11 +52,28 @@ void avrc_rn_track_change_callback(uint8_t *id) {
   //An example of how to project the pointer value directly as a uint8_t
   track_change_flag = *id;
   Serial.printf("\tFlag value: %d\n",track_change_flag);
+  cycleFlag = true;
 }
-
+void recevieEvent(){
+  byte msg = Wire.read();
+  if(msg < 0x0b){selectedReg = msg;}
+  else{toggleFlag = true;}
+}
+void requestEvent() {
+  switch(selectedReg){
+    case 0x02:
+      Wire.write(playbackState);
+      break;
+    case 0x03:
+      Wire.write(cycleFlag);
+      break;
+  }
+}
 void setup() {
   // put your setup code here, to run once:
-  Wire.Begin();
+  Wire.Begin(1); // change to 2 for second slave;
+  Wire.onRequest(requestEvent);
+  Wire.onReceive(recevieEvent);
   Serial.begin(115200);
   auto cfg = i2s.defaultConfig();
   cfg.pin_bck = 14;
@@ -67,6 +86,8 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-
+  if(toggleFlag){
+    if(playbackState == esp_avrc_playback_stat_t::ESP_AVRC_PLAYBACK_PLAYING ){a2dp_sink.pause();}
+    else(a2dp_sink.play();)
+  }
 }

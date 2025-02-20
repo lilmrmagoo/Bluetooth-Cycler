@@ -66,6 +66,20 @@ void avrc_rn_track_change_callback(uint8_t *id) {
   cycleFlag = true;
 }
 
+void setOutputSelectorPins(int device){
+  if(device == 0){
+    digitalWrite(selectorPinA,LOW);
+    digitalWrite(selectorPinB,LOW);
+  }
+  else if(device == 1){
+    digitalWrite(selectorPinA,HIGH);
+    digitalWrite(selectorPinB,LOW);
+  }
+  else if(device == 2){
+    digitalWrite(selectorPinA,LOW);
+    digitalWrite(selectorPinB,HIGH);
+  }
+}
 
 void toggle(int cycleid){
   if(cycleid == 0){
@@ -74,7 +88,7 @@ void toggle(int cycleid){
   }
   else{
     Wire.beginTransmission(cycleid);
-    if(states[cycleid] == esp_avrc_playback_stat_t::ESP_AVRC_PLAYBACK_PLAYING){Wire.write(0x0a);}//send pause signal
+    if(playbackStates[cycleid] == esp_avrc_playback_stat_t::ESP_AVRC_PLAYBACK_PLAYING){Wire.write(0x0a);}//send pause signal
     else{Wire.write(0x0b);}//send play signal
     Wire.endTransmission();
   }
@@ -91,15 +105,15 @@ void cycle(){
 //basic for now, could be more advanced with more playback states.
 void refresh() {
   Serial.println("refreshing " + String(CurrentCycle));
-  if(states[CurrentCycle] != esp_avrc_playback_stat_t::ESP_AVRC_PLAYBACK_PLAYING){
+  if(playbackStates[CurrentCycle] != esp_avrc_playback_stat_t::ESP_AVRC_PLAYBACK_PLAYING){
     toggle(CurrentCycle);
     //timeoutCheck(CurrentCycle,true);
   }
-  if(states[NextCycle] == esp_avrc_playback_stat_t::ESP_AVRC_PLAYBACK_PLAYING){
+  if(playbackStates[NextCycle] == esp_avrc_playback_stat_t::ESP_AVRC_PLAYBACK_PLAYING){
 	  toggle(NextCycle);
     //timeoutCheck(NextCycle,false);
   }
-  if(states[PrevCycle] == esp_avrc_playback_stat_t::ESP_AVRC_PLAYBACK_PLAYING){
+  if(playbackStates[PrevCycle] == esp_avrc_playback_stat_t::ESP_AVRC_PLAYBACK_PLAYING){
 	  toggle(PrevCycle);
     //timeoutCheck(PrevCycle,false);
   }
@@ -113,11 +127,11 @@ void changeRequestReg(int id, int reg,bool stop){
 //state1 nothing, state2 cycle, state3 refersh.
 int readState() {
   // playback state of master
-  states[0] = playbackState;
+  playbackStates[0] = playbackState;
   //get playback state of slave 1
   changeRequestReg(1,2,false);
   Wire.requestFrom(1,1);
-  states[1] = Wire.read();
+  playbackStates[1] = Wire.read();
   Wire.endTransmission();
   //get cycleflag from slave 1
   changeRequestReg(1,3,false);
@@ -128,7 +142,7 @@ int readState() {
   if(triMode){
     changeRequestReg(2,2,false);
     Wire.requestFrom(2,1);
-    states[2] = Wire.read();
+    playbackStates[2] = Wire.read();
     Wire.endTransmission();
     //get cycleflag from slave 1
     changeRequestReg(2,3,false);
@@ -144,7 +158,7 @@ int readState() {
   }
   int playing = 0;
   for(int i = 0; i<3;i++){
-    if(states[i] == esp_avrc_playback_stat_t::ESP_AVRC_PLAYBACK_PLAYING){playing++;}
+    if(playbackStates[i] == esp_avrc_playback_stat_t::ESP_AVRC_PLAYBACK_PLAYING){playing++;}
     Serial.println("device " + String(i) + " is " + String(states[i]));
   }
   if(cycleFlag && globalPlayback){return 2;}
@@ -207,6 +221,7 @@ void loop() {
   int path = readState();
   if(path == 2){
     toggle(CurrentCycle);
+    setOutputSelectorPins(NextCycle);
     toggle(NextCycle);
     cycle();
   }
