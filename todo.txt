@@ -5,5 +5,5 @@ connected,
 paused,
 playing
 
-make function to switch multiplexers that gets called on toggle? maybe cycle
-finish slave loop
+figure out power connections, plug slaves in first to pc? I think, then power multiplexers with master? check if vin outputs 5v wehn powered by usb (possibly connected to usb 5v line)
+add built in led logic to detemine playback without outputing audio

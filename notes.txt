@@ -45,4 +45,5 @@ wait for i2c request
 change to pairing create bt connection
 once connected set state to connected
 
--slave 
+-slave loop
+check for updates and pause/play accordingly.
