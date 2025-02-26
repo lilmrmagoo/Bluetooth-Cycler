@@ -54,10 +54,11 @@ void avrc_rn_track_change_callback(uint8_t *id) {
   Serial.printf("\tFlag value: %d\n",track_change_flag);
   cycleFlag = true;
 }
-void recevieEvent(){
+void recevieEvent(int howmany){
   byte msg = Wire.read();
   if(msg < 0x0b){selectedReg = msg;}
   else{toggleFlag = true;}
+  Serial.print("msg recevied: " + String(msg));
 }
 void requestEvent() {
   switch(selectedReg){
@@ -65,13 +66,13 @@ void requestEvent() {
       Wire.write(playbackState);
       break;
     case 0x03:
-      Wire.write(cycleFlag);
+      Wire.write(cycleFlag);S
       break;
   }
 }
 void setup() {
   // put your setup code here, to run once:
-  Wire.Begin(1); // change to 2 for second slave;
+  Wire.begin(2); // change to 2 for second slave;
   Wire.onRequest(requestEvent);
   Wire.onReceive(recevieEvent);
   Serial.begin(115200);
@@ -83,11 +84,13 @@ void setup() {
   a2dp_sink.set_avrc_metadata_callback(avrc_metadata_callback);
   a2dp_sink.set_avrc_rn_track_change_callback(avrc_rn_track_change_callback);
   a2dp_sink.set_avrc_rn_playstatus_callback(avrc_rn_playstatus_callback);
+  a2dp_sink.start("BTCycler3");
 }
 
 void loop() {
   if(toggleFlag){
-    if(playbackState == esp_avrc_playback_stat_t::ESP_AVRC_PLAYBACK_PLAYING ){a2dp_sink.pause();}
-    else(a2dp_sink.play();)
+    if(playbackState == esp_avrc_playback_stat_t::ESP_AVRC_PLAYBACK_PLAYING ){a2dp_sink.pause();digitalWrite(2,LOW);}
+    else{a2dp_sink.play();digitalWrite(2,HIGH);};
+    toggleFlag == false;
   }
 }
